@@ -2,6 +2,7 @@ import User from '#models/user'
 import { signupValidator } from '#validators/user'
 import type { HttpContext } from '@adonisjs/core/http'
 import UserTransformer from '#transformers/user_transformer'
+import JwtService from '#services/jwt_service'
 
 export default class NewAccountController {
   async store({ request, serialize }: HttpContext) {
@@ -9,11 +10,11 @@ export default class NewAccountController {
       await request.validateUsing(signupValidator)
 
     const user = await User.create({ firstName, lastName, email, password, role, level, location, club })
-    const token = await User.accessTokens.create(user)
+    const token = await JwtService.sign(user.id)
 
     return serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token,
     })
   }
 }

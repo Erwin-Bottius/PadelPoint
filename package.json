@@ -22,6 +22,7 @@
     "#exceptions/*": "./app/exceptions/*.js",
     "#models/*": "./app/models/*.js",
     "#mails/*": "./app/mails/*.js",
+    "#guards/*": "./app/guards/*.js",
     "#services/*": "./app/services/*.js",
     "#listeners/*": "./app/listeners/*.js",
     "#events/*": "./app/events/*.js",
@@ -66,6 +67,7 @@
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
     "better-sqlite3": "^12.10.0",
+    "jose": "^6.2.3",
     "luxon": "^3.7.2",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2"
