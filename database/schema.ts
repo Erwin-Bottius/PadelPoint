@@ -43,6 +43,21 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class ClassMessageSchema extends BaseModel {
+  static $columns = ['classId', 'content', 'createdAt', 'id', 'userId'] as const
+  $columns = ClassMessageSchema.$columns
+  @column()
+  declare classId: string
+  @column()
+  declare content: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare userId: string
+}
+
 export class ClassParticipantSchema extends BaseModel {
   static $columns = ['classId', 'joinedAt', 'userId'] as const
   $columns = ClassParticipantSchema.$columns

@@ -31,5 +31,8 @@ export interface ApiDefinition {
       cancel: typeof routes['classes.classes.cancel']
       uncancel: typeof routes['classes.classes.uncancel']
     }
+    messages: {
+      index: typeof routes['classes.messages.index']
+    }
   }
 }

@@ -11,6 +11,7 @@ export type ScannedRoutes = {
     'classes.classes.index': { paramsTuple?: []; params?: {} }
     'classes.classes.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.players': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.messages.index': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.join': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.leave': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.store': { paramsTuple?: []; params?: {} }
@@ -24,12 +25,14 @@ export type ScannedRoutes = {
     'classes.classes.index': { paramsTuple?: []; params?: {} }
     'classes.classes.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.players': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.messages.index': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
     'classes.classes.index': { paramsTuple?: []; params?: {} }
     'classes.classes.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.players': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.messages.index': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }

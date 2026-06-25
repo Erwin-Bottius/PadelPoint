@@ -91,6 +91,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['players']>>>
     }
   }
+  'classes.messages.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/classes/:id/messages'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/message').listMessagesValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/messages_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/messages_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'classes.classes.join': {
     methods: ["POST"]
     pattern: '/api/v1/classes/:id/join'

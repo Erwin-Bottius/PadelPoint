@@ -72,7 +72,8 @@
     "jose": "^6.2.3",
     "luxon": "^3.7.2",
     "pg": "^8.22.0",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.3"
   },
   "hotHook": {
     "boundaries": [

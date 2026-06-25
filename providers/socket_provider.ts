@@ -1,0 +1,110 @@
+import type { ApplicationService } from '@adonisjs/core/types'
+import { Server } from 'socket.io'
+import ClassMessage from '#models/class_message'
+import { ClassService } from '#services/class_service'
+
+declare module '@adonisjs/core/types' {
+  interface ContainerBindings {
+    'socket.io': Server
+  }
+}
+
+export default class SocketProvider {
+  constructor(protected app: ApplicationService) {}
+
+  async ready() {
+    const { default: server } = await import('@adonisjs/core/services/server')
+    const { default: User } = await import('#models/user')
+    const { default: JwtService } = await import('#services/jwt_service')
+
+    const io = new Server(server.getNodeServer(), {
+      cors: { origin: '*', credentials: true },
+    })
+
+    this.app.container.bindValue('socket.io', io)
+
+    io.use(async (socket, next) => {
+      try {
+        const token = (socket.handshake.auth.token as string | undefined)?.replace('Bearer ', '')
+        if (!token) return next(new Error('Authentication required'))
+
+        const userId = await JwtService.verify(token)
+        socket.data.user = await User.find(userId)
+        if (!socket.data.user) return next(new Error('User not found'))
+
+        next()
+      } catch {
+        next(new Error('Authentication failed'))
+      }
+    })
+
+    const classService = new ClassService()
+
+    io.on('connection', (socket) => {
+      const user = socket.data.user
+
+      socket.on('join_class', async (classId: string) => {
+        try {
+          const classInstance = await classService.findOne(classId, user)
+          if (!classInstance) {
+            socket.emit('error', { message: 'Class not found' })
+            return
+          }
+          await socket.join(`class:${classId}`)
+          socket.emit('joined', { classId })
+        } catch {
+          socket.emit('error', { message: 'Cannot join class room' })
+        }
+      })
+
+      socket.on(
+        'send_message',
+        async ({ classId, content }: { classId: string; content: string }) => {
+          try {
+            if (!content?.trim()) {
+              socket.emit('error', { message: 'Message cannot be empty' })
+              return
+            }
+            if (content.length > 1000) {
+              socket.emit('error', { message: 'Message too long (max 1000 characters)' })
+              return
+            }
+
+            const rooms = [...socket.rooms]
+            if (!rooms.includes(`class:${classId}`)) {
+              socket.emit('error', { message: 'You must join the class room first' })
+              return
+            }
+
+            const message = await ClassMessage.create({
+              classId,
+              userId: user.id,
+              content: content.trim(),
+            })
+
+            const payload = {
+              id: message.id,
+              classId: message.classId,
+              content: message.content,
+              createdAt: message.createdAt,
+              author: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+              },
+            }
+
+            io.to(`class:${classId}`).emit('new_message', payload)
+          } catch {
+            socket.emit('error', { message: 'Failed to send message' })
+          }
+        }
+      )
+
+      socket.on('leave_class', (classId: string) => {
+        socket.leave(`class:${classId}`)
+      })
+    })
+  }
+}
