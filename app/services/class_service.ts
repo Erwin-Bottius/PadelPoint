@@ -37,11 +37,43 @@ export class ClassService {
     return Class.query().whereIn('id', ids).orderBy('scheduled_at', 'asc')
   }
 
-  async findAll(user: User): Promise<Class[]> {
-    if (user.role === 'teacher') {
-      return Class.query().where('teacher_id', user.id).orderBy('scheduled_at', 'asc')
+  async findAll(
+    user: User,
+    filters: { date?: string; level?: number; location?: string; available?: boolean } = {}
+  ): Promise<Class[]> {
+    const query =
+      user.role === 'teacher'
+        ? Class.query().where('teacher_id', user.id)
+        : Class.query().where('is_published', true)
+
+    if (filters.date) {
+      const dt = DateTime.fromISO(filters.date, { zone: 'utc' })
+      const start = dt.startOf('day').toISO()!
+      const end = dt.endOf('day').toISO()!
+      query.whereBetween('scheduled_at', [start, end])
     }
-    return Class.query().where('is_published', true).orderBy('scheduled_at', 'asc')
+
+    if (filters.level !== undefined) {
+      query.where((q) =>
+        q
+          .whereNull('level_min')
+          .orWhere((inner) =>
+            inner.where('level_min', '<=', filters.level!).where('level_max', '>=', filters.level!)
+          )
+      )
+    }
+
+    if (filters.location) {
+      query.whereILike('location', `%${filters.location}%`)
+    }
+
+    if (filters.available === true) {
+      query.whereRaw(
+        '(SELECT COUNT(*) FROM class_participants WHERE class_id = classes.id) < classes.max_players'
+      )
+    }
+
+    return query.orderBy('scheduled_at', 'asc')
   }
 
   async findById(id: string): Promise<Class | null> {
@@ -60,8 +92,10 @@ export class ClassService {
     if (data.name !== undefined) classInstance.merge({ name: data.name })
     if (data.duration !== undefined) classInstance.merge({ duration: data.duration })
     if (data.location !== undefined) classInstance.merge({ location: data.location })
-    if (data.levelMin !== undefined) classInstance.merge({ levelMin: data.levelMin ?? null })
-    if (data.levelMax !== undefined) classInstance.merge({ levelMax: data.levelMax ?? null })
+    if (data.levelMin !== undefined)
+      classInstance.merge({ levelMin: String(data.levelMin ?? null) })
+    if (data.levelMax !== undefined)
+      classInstance.merge({ levelMax: String(data.levelMax ?? null) })
     if (data.club !== undefined) classInstance.merge({ club: data.club })
     if (data.maxPlayers !== undefined) classInstance.merge({ maxPlayers: data.maxPlayers })
     if (data.isPublished !== undefined) classInstance.merge({ isPublished: data.isPublished })
@@ -91,8 +125,8 @@ export class ClassService {
       const playerLevel = (player as any).level as number | null
       if (
         playerLevel === null ||
-        playerLevel < classInstance.levelMin ||
-        playerLevel > classInstance.levelMax
+        playerLevel < +classInstance.levelMin ||
+        playerLevel > +classInstance.levelMax
       ) {
         throw Object.assign(new Error('Your level is not within the class range'), {
           code: 'UNPROCESSABLE',

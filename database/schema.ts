@@ -8,18 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = [
-    'abilities',
-    'createdAt',
-    'expiresAt',
-    'hash',
-    'id',
-    'lastUsedAt',
-    'name',
-    'tokenableId',
-    'type',
-    'updatedAt',
-  ] as const
+  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
   $columns = AuthAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -55,20 +44,7 @@ export class ClassParticipantSchema extends BaseModel {
 }
 
 export class ClassSchema extends BaseModel {
-  static $columns = [
-    'club',
-    'createdAt',
-    'duration',
-    'id',
-    'isPublished',
-    'levelMax',
-    'levelMin',
-    'location',
-    'maxPlayers',
-    'name',
-    'scheduledAt',
-    'teacherId',
-  ] as const
+  static $columns = ['club', 'createdAt', 'duration', 'id', 'isPublished', 'levelMax', 'levelMin', 'location', 'maxPlayers', 'name', 'scheduledAt', 'teacherId'] as const
   $columns = ClassSchema.$columns
   @column()
   declare club: string | null
@@ -80,10 +56,10 @@ export class ClassSchema extends BaseModel {
   declare id: string
   @column()
   declare isPublished: boolean
-  @column({ consume: (v: string | null) => (v !== null ? Number.parseFloat(v) : null) })
-  declare levelMax: number | null
-  @column({ consume: (v: string | null) => (v !== null ? Number.parseFloat(v) : null) })
-  declare levelMin: number | null
+  @column()
+  declare levelMax: string | null
+  @column()
+  declare levelMin: string | null
   @column()
   declare location: string | null
   @column()
@@ -97,19 +73,7 @@ export class ClassSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = [
-    'club',
-    'createdAt',
-    'email',
-    'firstName',
-    'id',
-    'lastName',
-    'level',
-    'location',
-    'password',
-    'profilePicture',
-    'role',
-  ] as const
+  static $columns = ['club', 'createdAt', 'email', 'firstName', 'id', 'lastName', 'level', 'location', 'password', 'profilePicture', 'role'] as const
   $columns = UserSchema.$columns
   @column()
   declare club: string | null

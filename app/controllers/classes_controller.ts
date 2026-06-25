@@ -1,13 +1,18 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { ClassService } from '#services/class_service'
-import { createClassesValidator, updateClassValidator } from '#validators/class'
+import {
+  createClassesValidator,
+  listClassesValidator,
+  updateClassValidator,
+} from '#validators/class'
 
 const classService = new ClassService()
 
 export default class ClassesController {
-  async index({ auth }: HttpContext) {
+  async index({ auth, request }: HttpContext) {
     const user = auth.getUserOrFail()
-    const classes = await classService.findAll(user)
+    const filters = await request.validateUsing(listClassesValidator)
+    const classes = await classService.findAll(user, filters)
     return { data: classes.map((c) => c.serialize()) }
   }
 
