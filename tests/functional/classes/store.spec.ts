@@ -204,20 +204,20 @@ test.group('POST /api/v1/classes', (group) => {
     response.assertStatus(422)
   })
 
-  test('returns 422 when level is out of range (> 10)', async ({ client }) => {
+  test('returns 422 when levelMin is out of range (> 10)', async ({ client }) => {
     const teacher = await UserFactory.merge({ role: 'teacher' }).create()
     const response = await client
       .post(URL)
-      .json({ classes: [{ ...validClass, level: 11 }] })
+      .json({ classes: [{ ...validClass, levelMin: 11 }] })
       .loginAs(teacher)
     response.assertStatus(422)
   })
 
-  test('returns 422 when level is below minimum (< 1)', async ({ client }) => {
+  test('returns 422 when levelMax is below minimum (< 1)', async ({ client }) => {
     const teacher = await UserFactory.merge({ role: 'teacher' }).create()
     const response = await client
       .post(URL)
-      .json({ classes: [{ ...validClass, level: 0 }] })
+      .json({ classes: [{ ...validClass, levelMax: 0 }] })
       .loginAs(teacher)
     response.assertStatus(422)
   })
@@ -230,9 +230,10 @@ test.group('POST /api/v1/classes', (group) => {
         classes: [
           {
             ...validClass,
-            level: 7,
+            levelMin: 5.5,
+            levelMax: 7.0,
             club: 'Padel Club Paris',
-            maxPlayers: 6,
+            maxPlayers: 4,
           },
         ],
       })
@@ -240,8 +241,9 @@ test.group('POST /api/v1/classes', (group) => {
 
     response.assertStatus(200)
     const created = (response.body() as any).data[0]
-    assert.equal(created.level, 7)
+    assert.equal(created.levelMin, 5.5)
+    assert.equal(created.levelMax, 7)
     assert.equal(created.club, 'Padel Club Paris')
-    assert.equal(created.maxPlayers, 6)
+    assert.equal(created.maxPlayers, 4)
   })
 })

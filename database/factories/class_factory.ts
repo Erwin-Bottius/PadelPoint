@@ -10,7 +10,8 @@ export const ClassFactory = factory
       name: faker.lorem.words(3),
       duration: faker.helpers.arrayElement([60, 90, 120]),
       location: faker.location.streetAddress(),
-      level: faker.number.int({ min: 1, max: 10 }),
+      levelMin: null,
+      levelMax: null,
       maxPlayers: 4,
       isPublished: false,
     } as any // scheduledAt defaults to now() in DB; override with .merge() when needed

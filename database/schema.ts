@@ -61,7 +61,8 @@ export class ClassSchema extends BaseModel {
     'duration',
     'id',
     'isPublished',
-    'level',
+    'levelMax',
+    'levelMin',
     'location',
     'maxPlayers',
     'name',
@@ -79,8 +80,10 @@ export class ClassSchema extends BaseModel {
   declare id: string
   @column()
   declare isPublished: boolean
-  @column()
-  declare level: number | null
+  @column({ consume: (v: string | null) => (v !== null ? Number.parseFloat(v) : null) })
+  declare levelMax: number | null
+  @column({ consume: (v: string | null) => (v !== null ? Number.parseFloat(v) : null) })
+  declare levelMin: number | null
   @column()
   declare location: string | null
   @column()

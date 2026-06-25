@@ -10,6 +10,8 @@ export type ScannedRoutes = {
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'classes.classes.index': { paramsTuple?: []; params?: {} }
     'classes.classes.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.classes.join': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.classes.leave': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.store': { paramsTuple?: []; params?: {} }
     'classes.classes.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -28,13 +30,15 @@ export type ScannedRoutes = {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
+    'classes.classes.join': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.store': { paramsTuple?: []; params?: {} }
+  }
+  DELETE: {
+    'classes.classes.leave': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.classes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PUT: {
     'classes.classes.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-  }
-  DELETE: {
-    'classes.classes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

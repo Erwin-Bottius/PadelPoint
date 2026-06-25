@@ -1,4 +1,4 @@
-import type { DateTime } from 'luxon'
+import { DateTime } from 'luxon'
 import db from '@adonisjs/lucid/services/db'
 import Class from '#models/class'
 import type User from '#models/user'
@@ -8,7 +8,8 @@ type ClassInput = {
   scheduledAt: DateTime
   duration: number
   location: string
-  level?: number | null
+  levelMin?: number | null
+  levelMax?: number | null
   club?: string | null
   maxPlayers?: number
 }
@@ -23,7 +24,8 @@ export class ClassService {
       scheduled_at: input.scheduledAt.toISO(),
       duration: input.duration,
       location: input.location,
-      level: input.level ?? null,
+      level_min: input.levelMin ?? null,
+      level_max: input.levelMax ?? null,
       club: input.club ?? null,
       max_players: input.maxPlayers ?? 4,
       is_published: false,
@@ -42,6 +44,10 @@ export class ClassService {
     return Class.query().where('is_published', true).orderBy('scheduled_at', 'asc')
   }
 
+  async findById(id: string): Promise<Class | null> {
+    return Class.find(id)
+  }
+
   async findOne(id: string, user: User): Promise<Class | null> {
     const classInstance = await Class.find(id)
     if (!classInstance) return null
@@ -54,15 +60,76 @@ export class ClassService {
     if (data.name !== undefined) classInstance.merge({ name: data.name })
     if (data.duration !== undefined) classInstance.merge({ duration: data.duration })
     if (data.location !== undefined) classInstance.merge({ location: data.location })
-    if (data.level !== undefined) (classInstance as any).level = data.level ?? null
+    if (data.levelMin !== undefined) classInstance.merge({ levelMin: data.levelMin ?? null })
+    if (data.levelMax !== undefined) classInstance.merge({ levelMax: data.levelMax ?? null })
     if (data.club !== undefined) classInstance.merge({ club: data.club })
     if (data.maxPlayers !== undefined) classInstance.merge({ maxPlayers: data.maxPlayers })
     if (data.isPublished !== undefined) classInstance.merge({ isPublished: data.isPublished })
-    if (data.scheduledAt !== undefined) {
-      ;(classInstance as any).scheduledAt = data.scheduledAt
-    }
+    if (data.scheduledAt !== undefined) classInstance.merge({ scheduledAt: data.scheduledAt })
     await classInstance.save()
     return classInstance
+  }
+
+  async joinClass(classInstance: Class, player: User): Promise<void> {
+    if (player.role !== 'player') {
+      throw Object.assign(new Error('Only players can join classes'), { code: 'FORBIDDEN' })
+    }
+    if (!classInstance.isPublished) {
+      throw Object.assign(new Error('Class is not published'), { code: 'FORBIDDEN' })
+    }
+    if (classInstance.scheduledAt < DateTime.now()) {
+      throw Object.assign(new Error('Class has already passed'), { code: 'UNPROCESSABLE' })
+    }
+
+    const playerCount = await classInstance.related('players').query().count('* as total')
+    const total = Number((playerCount[0] as any).$extras.total)
+    if (total >= classInstance.maxPlayers) {
+      throw Object.assign(new Error('Class is full'), { code: 'UNPROCESSABLE' })
+    }
+
+    if (classInstance.levelMin !== null && classInstance.levelMax !== null) {
+      const playerLevel = (player as any).level as number | null
+      if (
+        playerLevel === null ||
+        playerLevel < classInstance.levelMin ||
+        playerLevel > classInstance.levelMax
+      ) {
+        throw Object.assign(new Error('Your level is not within the class range'), {
+          code: 'UNPROCESSABLE',
+        })
+      }
+    }
+
+    const alreadyJoined = await classInstance
+      .related('players')
+      .query()
+      .where('user_id', player.id)
+      .first()
+    if (alreadyJoined) {
+      throw Object.assign(new Error('Already joined this class'), { code: 'CONFLICT' })
+    }
+
+    await classInstance.related('players').attach([player.id])
+  }
+
+  async leaveClass(classInstance: Class, player: User): Promise<void> {
+    if (player.role !== 'player') {
+      throw Object.assign(new Error('Only players can leave classes'), { code: 'FORBIDDEN' })
+    }
+    if (classInstance.scheduledAt <= DateTime.now()) {
+      throw Object.assign(new Error('Class has already started'), { code: 'UNPROCESSABLE' })
+    }
+    const enrollment = await classInstance
+      .related('players')
+      .query()
+      .where('user_id', player.id)
+      .first()
+    if (!enrollment) {
+      throw Object.assign(new Error('You are not enrolled in this class'), {
+        code: 'UNPROCESSABLE',
+      })
+    }
+    await classInstance.related('players').detach([player.id])
   }
 
   async delete(classInstance: Class): Promise<void> {

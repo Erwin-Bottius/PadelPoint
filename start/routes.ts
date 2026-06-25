@@ -38,6 +38,8 @@ router
       .group(() => {
         router.get('/', [controllers.Classes, 'index'])
         router.get('/:id', [controllers.Classes, 'show'])
+        router.post('/:id/join', [controllers.Classes, 'join'])
+        router.delete('/:id/join', [controllers.Classes, 'leave'])
         router
           .group(() => {
             router.post('/', [controllers.Classes, 'store'])
@@ -46,7 +48,7 @@ router
           })
           .use(middleware.requireTeacher())
       })
-      .prefix('/classes')
+      .prefix('classes')
       .as('classes')
       .use(middleware.auth())
   })

@@ -42,6 +42,18 @@ const routes = {
     tokens: [{"old":"/api/v1/classes/:id","type":0,"val":"api","end":""},{"old":"/api/v1/classes/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/classes/:id","type":0,"val":"classes","end":""},{"old":"/api/v1/classes/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['classes.classes.show']['types'],
   },
+  'classes.classes.join': {
+    methods: ["POST"],
+    pattern: '/api/v1/classes/:id/join',
+    tokens: [{"old":"/api/v1/classes/:id/join","type":0,"val":"api","end":""},{"old":"/api/v1/classes/:id/join","type":0,"val":"v1","end":""},{"old":"/api/v1/classes/:id/join","type":0,"val":"classes","end":""},{"old":"/api/v1/classes/:id/join","type":1,"val":"id","end":""},{"old":"/api/v1/classes/:id/join","type":0,"val":"join","end":""}],
+    types: placeholder as Registry['classes.classes.join']['types'],
+  },
+  'classes.classes.leave': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/classes/:id/join',
+    tokens: [{"old":"/api/v1/classes/:id/join","type":0,"val":"api","end":""},{"old":"/api/v1/classes/:id/join","type":0,"val":"v1","end":""},{"old":"/api/v1/classes/:id/join","type":0,"val":"classes","end":""},{"old":"/api/v1/classes/:id/join","type":1,"val":"id","end":""},{"old":"/api/v1/classes/:id/join","type":0,"val":"join","end":""}],
+    types: placeholder as Registry['classes.classes.leave']['types'],
+  },
   'classes.classes.store': {
     methods: ["POST"],
     pattern: '/api/v1/classes',

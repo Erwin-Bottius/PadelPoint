@@ -5,9 +5,10 @@ const classItem = vine.object({
   scheduledAt: vine.date({ formats: ['iso8601'] }),
   duration: vine.number().min(15).max(480),
   location: vine.string().trim().minLength(1).maxLength(255),
-  level: vine.number().min(1).max(10).optional(),
+  levelMin: vine.number().min(1).max(10).optional(),
+  levelMax: vine.number().min(1).max(10).optional(),
   club: vine.string().trim().maxLength(100).optional(),
-  maxPlayers: vine.number().min(1).max(20).optional(),
+  maxPlayers: vine.number().min(1).max(4).optional(),
 })
 
 export const createClassesValidator = vine.compile(
@@ -22,9 +23,10 @@ export const updateClassValidator = vine.compile(
     scheduledAt: vine.date({ formats: ['iso8601'] }).optional(),
     duration: vine.number().min(15).max(480).optional(),
     location: vine.string().trim().maxLength(255).optional(),
-    level: vine.number().min(1).max(10).optional(),
+    levelMin: vine.number().min(1).max(10).optional(),
+    levelMax: vine.number().min(1).max(10).optional(),
     club: vine.string().trim().maxLength(100).optional(),
-    maxPlayers: vine.number().min(1).max(20).optional(),
+    maxPlayers: vine.number().min(1).max(4).optional(),
     isPublished: vine.boolean().optional(),
   })
 )

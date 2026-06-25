@@ -45,4 +45,31 @@ export default class ClassesController {
     await classService.delete(classInstance)
     return response.noContent()
   }
+
+  async leave({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const classInstance = await classService.findById(params.id)
+    if (!classInstance) return response.notFound({ message: 'Class not found' })
+    try {
+      await classService.leaveClass(classInstance, user)
+      return response.noContent()
+    } catch (err: any) {
+      if (err.code === 'FORBIDDEN') return response.forbidden({ message: err.message })
+      return response.unprocessableEntity({ message: err.message })
+    }
+  }
+
+  async join({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const classInstance = await classService.findById(params.id)
+    if (!classInstance) return response.notFound({ message: 'Class not found' })
+    try {
+      await classService.joinClass(classInstance, user)
+      return response.noContent()
+    } catch (err: any) {
+      if (err.code === 'FORBIDDEN') return response.forbidden({ message: err.message })
+      if (err.code === 'CONFLICT') return response.conflict({ message: err.message })
+      return response.unprocessableEntity({ message: err.message })
+    }
+  }
 }

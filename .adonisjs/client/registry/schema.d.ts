@@ -79,6 +79,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['show']>>>
     }
   }
+  'classes.classes.join': {
+    methods: ["POST"]
+    pattern: '/api/v1/classes/:id/join'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['join']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['join']>>>
+    }
+  }
+  'classes.classes.leave': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/classes/:id/join'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['leave']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['leave']>>>
+    }
+  }
   'classes.classes.store': {
     methods: ["POST"]
     pattern: '/api/v1/classes'
