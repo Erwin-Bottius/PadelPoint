@@ -6,7 +6,7 @@ const LOGOUT_URL = '/api/v1/account/logout'
 
 test.group('POST /api/v1/account/logout', (group) => {
   group.each.setup(async () => {
-    await testUtils.db().truncate()
+    const cleanup = await testUtils.db().truncate(); await cleanup()
   })
 
   test('returns 204 when authenticated', async ({ client }) => {

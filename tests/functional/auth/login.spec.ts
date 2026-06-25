@@ -6,7 +6,8 @@ const LOGIN_URL = '/api/v1/auth/login'
 
 test.group('POST /api/v1/auth/login', (group) => {
   group.each.setup(async () => {
-    await testUtils.db().truncate()
+    const cleanup = await testUtils.db().truncate()
+    await cleanup()
   })
 
   test('returns a JWT token on valid credentials', async ({ client, assert }) => {

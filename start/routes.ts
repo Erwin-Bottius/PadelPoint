@@ -33,5 +33,21 @@ router
       .prefix('account')
       .as('profile')
       .use(middleware.auth())
+
+    router
+      .group(() => {
+        router.get('/', [controllers.Classes, 'index'])
+        router.get('/:id', [controllers.Classes, 'show'])
+        router
+          .group(() => {
+            router.post('/', [controllers.Classes, 'store'])
+            router.put('/:id', [controllers.Classes, 'update'])
+            router.delete('/:id', [controllers.Classes, 'destroy'])
+          })
+          .use(middleware.requireTeacher())
+      })
+      .prefix('/classes')
+      .as('classes')
+      .use(middleware.auth())
   })
   .prefix('/api/v1')

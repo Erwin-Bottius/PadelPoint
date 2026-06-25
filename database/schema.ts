@@ -8,7 +8,18 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AuthAccessTokenSchema extends BaseModel {
-  static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
+  static $columns = [
+    'abilities',
+    'createdAt',
+    'expiresAt',
+    'hash',
+    'id',
+    'lastUsedAt',
+    'name',
+    'tokenableId',
+    'type',
+    'updatedAt',
+  ] as const
   $columns = AuthAccessTokenSchema.$columns
   @column()
   declare abilities: string
@@ -44,7 +55,19 @@ export class ClassParticipantSchema extends BaseModel {
 }
 
 export class ClassSchema extends BaseModel {
-  static $columns = ['club', 'createdAt', 'duration', 'id', 'isPublished', 'level', 'location', 'maxPlayers', 'name', 'teacherId'] as const
+  static $columns = [
+    'club',
+    'createdAt',
+    'duration',
+    'id',
+    'isPublished',
+    'level',
+    'location',
+    'maxPlayers',
+    'name',
+    'scheduledAt',
+    'teacherId',
+  ] as const
   $columns = ClassSchema.$columns
   @column()
   declare club: string | null
@@ -57,19 +80,33 @@ export class ClassSchema extends BaseModel {
   @column()
   declare isPublished: boolean
   @column()
-  declare level: number
+  declare level: number | null
   @column()
   declare location: string | null
   @column()
   declare maxPlayers: number
   @column()
   declare name: string
+  @column.dateTime()
+  declare scheduledAt: DateTime
   @column()
   declare teacherId: string
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['club', 'createdAt', 'email', 'firstName', 'id', 'lastName', 'level', 'location', 'password', 'profilePicture', 'role'] as const
+  static $columns = [
+    'club',
+    'createdAt',
+    'email',
+    'firstName',
+    'id',
+    'lastName',
+    'level',
+    'location',
+    'password',
+    'profilePicture',
+    'role',
+  ] as const
   $columns = UserSchema.$columns
   @column()
   declare club: string | null

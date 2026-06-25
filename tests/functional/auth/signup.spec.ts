@@ -14,7 +14,8 @@ const validPayload = {
 
 test.group('POST /api/v1/auth/signup', (group) => {
   group.each.setup(async () => {
-    await testUtils.db().truncate()
+    const cleanup = await testUtils.db().truncate()
+    await cleanup()
   })
 
   test('creates a user and returns a JWT token', async ({ client, assert }) => {

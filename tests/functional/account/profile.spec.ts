@@ -6,7 +6,7 @@ const PROFILE_URL = '/api/v1/account/profile'
 
 test.group('GET /api/v1/account/profile', (group) => {
   group.each.setup(async () => {
-    await testUtils.db().truncate()
+    const cleanup = await testUtils.db().truncate(); await cleanup()
   })
 
   test('returns the authenticated user profile', async ({ client, assert }) => {
