@@ -46,6 +46,14 @@ export default class ClassesController {
     return response.noContent()
   }
 
+  async players({ auth, params, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const classInstance = await classService.findOne(params.id, user)
+    if (!classInstance) return response.notFound({ message: 'Class not found' })
+    const players = await classService.getPlayers(classInstance, user)
+    return { data: players }
+  }
+
   async leave({ auth, params, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const classInstance = await classService.findById(params.id)

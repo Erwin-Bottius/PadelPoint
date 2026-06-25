@@ -112,6 +112,31 @@ export class ClassService {
     await classInstance.related('players').attach([player.id])
   }
 
+  async getPlayers(
+    classInstance: Class,
+    requestingUser: User
+  ): Promise<
+    {
+      id: string
+      firstName: string
+      lastName: string
+      level: number | null
+      email?: string
+      joinedAt: string
+    }[]
+  > {
+    const players = await classInstance.related('players').query().pivotColumns(['joined_at'])
+    const isOwner = classInstance.teacherId === requestingUser.id
+    return players.map((p) => ({
+      id: p.id,
+      firstName: p.firstName,
+      lastName: p.lastName,
+      level: p.level,
+      ...(isOwner ? { email: p.email } : {}),
+      joinedAt: p.$extras.pivot_joined_at as string,
+    }))
+  }
+
   async leaveClass(classInstance: Class, player: User): Promise<void> {
     if (player.role !== 'player') {
       throw Object.assign(new Error('Only players can leave classes'), { code: 'FORBIDDEN' })

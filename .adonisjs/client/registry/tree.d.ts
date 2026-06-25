@@ -22,6 +22,7 @@ export interface ApiDefinition {
     classes: {
       index: typeof routes['classes.classes.index']
       show: typeof routes['classes.classes.show']
+      players: typeof routes['classes.classes.players']
       join: typeof routes['classes.classes.join']
       leave: typeof routes['classes.classes.leave']
       store: typeof routes['classes.classes.store']
