@@ -25,26 +25,72 @@ export class AuthAccessTokenSchema extends BaseModel {
   @column()
   declare name: string | null
   @column()
-  declare tokenableId: number
+  declare tokenableId: string
   @column()
   declare type: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
 
+export class ClassParticipantSchema extends BaseModel {
+  static $columns = ['classId', 'joinedAt', 'userId'] as const
+  $columns = ClassParticipantSchema.$columns
+  @column({ isPrimary: true })
+  declare classId: string
+  @column.dateTime()
+  declare joinedAt: DateTime
+  @column()
+  declare userId: string
+}
+
+export class ClassSchema extends BaseModel {
+  static $columns = ['club', 'createdAt', 'duration', 'id', 'isPublished', 'level', 'location', 'maxPlayers', 'name', 'teacherId'] as const
+  $columns = ClassSchema.$columns
+  @column()
+  declare club: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare duration: number
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare isPublished: boolean
+  @column()
+  declare level: number
+  @column()
+  declare location: string | null
+  @column()
+  declare maxPlayers: number
+  @column()
+  declare name: string
+  @column()
+  declare teacherId: string
+}
+
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt'] as const
+  static $columns = ['club', 'createdAt', 'email', 'firstName', 'id', 'lastName', 'level', 'location', 'password', 'profilePicture', 'role'] as const
   $columns = UserSchema.$columns
+  @column()
+  declare club: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
   declare email: string
   @column()
-  declare fullName: string | null
+  declare firstName: string
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
+  @column()
+  declare lastName: string
+  @column()
+  declare level: number | null
+  @column()
+  declare location: string | null
   @column({ serializeAs: null })
   declare password: string
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  @column()
+  declare profilePicture: string | null
+  @column()
+  declare role: string
 }
