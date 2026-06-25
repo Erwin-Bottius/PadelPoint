@@ -6,7 +6,7 @@ const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
    */
-  connection: 'postgres',
+  connection: 'pg',
 
   connections: {
     /**
@@ -61,6 +61,7 @@ const dbConfig = defineConfig({
         user: env.get('DB_USER'),
         password: env.get('DB_PASSWORD'),
         database: env.get('DB_DATABASE'),
+        ssl: env.get('DB_SSL') ? { rejectUnauthorized: false } : false,
       },
       migrations: {
         naturalSort: true,
