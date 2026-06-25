@@ -46,6 +46,8 @@ router
             router.post('/', [controllers.Classes, 'store'])
             router.put('/:id', [controllers.Classes, 'update'])
             router.delete('/:id', [controllers.Classes, 'destroy'])
+            router.post('/:id/cancel', [controllers.Classes, 'cancel'])
+            router.delete('/:id/cancel', [controllers.Classes, 'uncancel'])
           })
           .use(middleware.requireTeacher())
       })

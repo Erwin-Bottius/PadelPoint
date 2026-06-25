@@ -16,6 +16,8 @@ export type ScannedRoutes = {
     'classes.classes.store': { paramsTuple?: []; params?: {} }
     'classes.classes.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.classes.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.classes.uncancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'profile.profile.show': { paramsTuple?: []; params?: {} }
@@ -35,10 +37,12 @@ export type ScannedRoutes = {
     'profile.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'classes.classes.join': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.store': { paramsTuple?: []; params?: {} }
+    'classes.classes.cancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'classes.classes.leave': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'classes.classes.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'classes.classes.uncancel': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PUT: {
     'classes.classes.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

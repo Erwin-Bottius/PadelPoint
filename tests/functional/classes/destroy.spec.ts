@@ -12,15 +12,29 @@ test.group('DELETE /api/v1/classes/:id', (group) => {
     const cleanup = await testUtils.db().truncate(); await cleanup()
   })
 
-  test('teacher can delete their own class', async ({ client, assert }) => {
+  test('teacher can delete their own unpublished class', async ({ client, assert }) => {
     const teacher = await UserFactory.merge({ role: 'teacher' }).create()
-    const classInstance = await ClassFactory.merge({ teacherId: teacher.id }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: false,
+    } as any).create()
 
     const response = await client.delete(URL(classInstance.id)).loginAs(teacher)
 
     response.assertStatus(204)
     const found = await Class.find(classInstance.id)
     assert.isNull(found)
+  })
+
+  test('teacher cannot delete a published class', async ({ client }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+    } as any).create()
+
+    const response = await client.delete(URL(classInstance.id)).loginAs(teacher)
+    response.assertStatus(409)
   })
 
   test('teacher cannot delete another teacher class', async ({ client }) => {

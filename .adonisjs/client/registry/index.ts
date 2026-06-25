@@ -78,6 +78,18 @@ const routes = {
     tokens: [{"old":"/api/v1/classes/:id","type":0,"val":"api","end":""},{"old":"/api/v1/classes/:id","type":0,"val":"v1","end":""},{"old":"/api/v1/classes/:id","type":0,"val":"classes","end":""},{"old":"/api/v1/classes/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['classes.classes.destroy']['types'],
   },
+  'classes.classes.cancel': {
+    methods: ["POST"],
+    pattern: '/api/v1/classes/:id/cancel',
+    tokens: [{"old":"/api/v1/classes/:id/cancel","type":0,"val":"api","end":""},{"old":"/api/v1/classes/:id/cancel","type":0,"val":"v1","end":""},{"old":"/api/v1/classes/:id/cancel","type":0,"val":"classes","end":""},{"old":"/api/v1/classes/:id/cancel","type":1,"val":"id","end":""},{"old":"/api/v1/classes/:id/cancel","type":0,"val":"cancel","end":""}],
+    types: placeholder as Registry['classes.classes.cancel']['types'],
+  },
+  'classes.classes.uncancel': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/classes/:id/cancel',
+    tokens: [{"old":"/api/v1/classes/:id/cancel","type":0,"val":"api","end":""},{"old":"/api/v1/classes/:id/cancel","type":0,"val":"v1","end":""},{"old":"/api/v1/classes/:id/cancel","type":0,"val":"classes","end":""},{"old":"/api/v1/classes/:id/cancel","type":1,"val":"id","end":""},{"old":"/api/v1/classes/:id/cancel","type":0,"val":"cancel","end":""}],
+    types: placeholder as Registry['classes.classes.uncancel']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

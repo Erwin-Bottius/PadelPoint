@@ -89,13 +89,20 @@ export class ClassService {
   }
 
   async update(classInstance: Class, data: UpdateInput): Promise<Class> {
+    if (data.isPublished === false && classInstance.isPublished === true) {
+      const count = await classInstance.related('players').query().count('* as total')
+      const total = Number((count[0] as any).$extras.total)
+      if (total > 0) {
+        throw Object.assign(new Error('Cannot unpublish a class with enrolled players'), {
+          code: 'CONFLICT',
+        })
+      }
+    }
     if (data.name !== undefined) classInstance.merge({ name: data.name })
     if (data.duration !== undefined) classInstance.merge({ duration: data.duration })
     if (data.location !== undefined) classInstance.merge({ location: data.location })
-    if (data.levelMin !== undefined)
-      classInstance.merge({ levelMin: String(data.levelMin ?? null) })
-    if (data.levelMax !== undefined)
-      classInstance.merge({ levelMax: String(data.levelMax ?? null) })
+    if (data.levelMin !== undefined) classInstance.merge({ levelMin: data.levelMin ?? null })
+    if (data.levelMax !== undefined) classInstance.merge({ levelMax: data.levelMax ?? null })
     if (data.club !== undefined) classInstance.merge({ club: data.club })
     if (data.maxPlayers !== undefined) classInstance.merge({ maxPlayers: data.maxPlayers })
     if (data.isPublished !== undefined) classInstance.merge({ isPublished: data.isPublished })
@@ -191,7 +198,39 @@ export class ClassService {
     await classInstance.related('players').detach([player.id])
   }
 
+  async cancel(classInstance: Class): Promise<Class> {
+    if (!classInstance.isPublished) {
+      throw Object.assign(new Error('Only published classes can be cancelled'), {
+        code: 'UNPROCESSABLE',
+      })
+    }
+    if (classInstance.isCancelled) {
+      throw Object.assign(new Error('Class is already cancelled'), { code: 'CONFLICT' })
+    }
+    classInstance.merge({ isCancelled: true })
+    await classInstance.save()
+    return classInstance
+  }
+
+  async uncancel(classInstance: Class): Promise<Class> {
+    if (!classInstance.isCancelled) {
+      throw Object.assign(new Error('Class is not cancelled'), { code: 'CONFLICT' })
+    }
+    const endsAt = classInstance.scheduledAt.plus({ minutes: classInstance.duration })
+    if (endsAt <= DateTime.now()) {
+      throw Object.assign(new Error('Cannot uncancel a class that has already ended'), {
+        code: 'UNPROCESSABLE',
+      })
+    }
+    classInstance.merge({ isCancelled: false })
+    await classInstance.save()
+    return classInstance
+  }
+
   async delete(classInstance: Class): Promise<void> {
+    if (classInstance.isPublished) {
+      throw Object.assign(new Error('Cannot delete a published class'), { code: 'CONFLICT' })
+    }
     await classInstance.delete()
   }
 }

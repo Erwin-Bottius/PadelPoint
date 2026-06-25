@@ -151,4 +151,28 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['destroy']>>>
     }
   }
+  'classes.classes.cancel': {
+    methods: ["POST"]
+    pattern: '/api/v1/classes/:id/cancel'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['cancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['cancel']>>>
+    }
+  }
+  'classes.classes.uncancel': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/classes/:id/cancel'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['uncancel']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['uncancel']>>>
+    }
+  }
 }

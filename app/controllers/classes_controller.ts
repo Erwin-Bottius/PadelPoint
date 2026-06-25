@@ -47,8 +47,42 @@ export default class ClassesController {
     if (!classInstance) return response.notFound({ message: 'Class not found' })
     if (classInstance.teacherId !== user.id)
       return response.forbidden({ message: 'Not your class' })
-    await classService.delete(classInstance)
-    return response.noContent()
+    try {
+      await classService.delete(classInstance)
+      return response.noContent()
+    } catch (err: any) {
+      return response.conflict({ message: err.message })
+    }
+  }
+
+  async uncancel({ auth, params, serialize, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const classInstance = await classService.findOne(params.id, user)
+    if (!classInstance) return response.notFound({ message: 'Class not found' })
+    if (classInstance.teacherId !== user.id)
+      return response.forbidden({ message: 'Not your class' })
+    try {
+      const updated = await classService.uncancel(classInstance)
+      return serialize(updated.serialize())
+    } catch (err: any) {
+      if (err.code === 'CONFLICT') return response.conflict({ message: err.message })
+      return response.unprocessableEntity({ message: err.message })
+    }
+  }
+
+  async cancel({ auth, params, serialize, response }: HttpContext) {
+    const user = auth.getUserOrFail()
+    const classInstance = await classService.findOne(params.id, user)
+    if (!classInstance) return response.notFound({ message: 'Class not found' })
+    if (classInstance.teacherId !== user.id)
+      return response.forbidden({ message: 'Not your class' })
+    try {
+      const updated = await classService.cancel(classInstance)
+      return serialize(updated.serialize())
+    } catch (err: any) {
+      if (err.code === 'CONFLICT') return response.conflict({ message: err.message })
+      return response.unprocessableEntity({ message: err.message })
+    }
   }
 
   async players({ auth, params, response }: HttpContext) {

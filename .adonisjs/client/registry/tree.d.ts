@@ -28,6 +28,8 @@ export interface ApiDefinition {
       store: typeof routes['classes.classes.store']
       update: typeof routes['classes.classes.update']
       destroy: typeof routes['classes.classes.destroy']
+      cancel: typeof routes['classes.classes.cancel']
+      uncancel: typeof routes['classes.classes.uncancel']
     }
   }
 }
