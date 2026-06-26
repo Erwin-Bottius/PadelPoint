@@ -79,18 +79,6 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['show']>>>
     }
   }
-  'classes.classes.players': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/v1/classes/:id/players'
-    types: {
-      body: {}
-      paramsTuple: [ParamValue]
-      params: { id: ParamValue }
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['players']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/classes_controller').default['players']>>>
-    }
-  }
   'classes.messages.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/v1/classes/:id/messages'

@@ -107,7 +107,7 @@ export class ClassSchema extends BaseModel {
   @column()
   declare maxPlayers: number
   @column()
-  declare name: string
+  declare name: string | null
   @column.dateTime()
   declare scheduledAt: DateTime
   @column()

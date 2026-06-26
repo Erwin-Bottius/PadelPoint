@@ -38,7 +38,6 @@ router
       .group(() => {
         router.get('/', [controllers.Classes, 'index'])
         router.get('/:id', [controllers.Classes, 'show'])
-        router.get('/:id/players', [controllers.Classes, 'players'])
         router.get('/:id/messages', [controllers.Messages, 'index'])
         router.post('/:id/join', [controllers.Classes, 'join'])
         router.delete('/:id/join', [controllers.Classes, 'leave'])

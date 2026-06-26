@@ -1,7 +1,7 @@
 import vine from '@vinejs/vine'
 
 const classItem = vine.object({
-  name: vine.string().trim().minLength(1).maxLength(100),
+  name: vine.string().trim().minLength(1).maxLength(100).optional(),
   scheduledAt: vine.date({ formats: ['iso8601'] }),
   duration: vine.number().min(15).max(480),
   location: vine.string().trim().minLength(1).maxLength(255),

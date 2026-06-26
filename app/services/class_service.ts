@@ -4,7 +4,7 @@ import Class from '#models/class'
 import type User from '#models/user'
 
 type ClassInput = {
-  name: string
+  name?: string | null
   scheduledAt: DateTime
   duration: number
   location: string
@@ -17,10 +17,22 @@ type ClassInput = {
 type UpdateInput = Partial<ClassInput> & { isPublished?: boolean }
 
 export class ClassService {
+  private defaultName(input: ClassInput): string {
+    if (
+      input.levelMin !== null &&
+      input.levelMin !== undefined &&
+      input.levelMax !== null &&
+      input.levelMax !== undefined
+    ) {
+      return `Cours niv. ${input.levelMin} - ${input.levelMax}`
+    }
+    return 'Cours tous niveaux'
+  }
+
   async bulkCreate(teacher: User, inputs: ClassInput[]): Promise<Class[]> {
     const rows = inputs.map((input) => ({
       teacher_id: teacher.id,
-      name: input.name,
+      name: input.name ?? this.defaultName(input),
       scheduled_at: input.scheduledAt.toISO(),
       duration: input.duration,
       location: input.location,
@@ -83,7 +95,12 @@ export class ClassService {
       )
     }
 
-    return query.orderBy('scheduled_at', 'asc')
+    return query
+      .preload('teacher')
+      .preload('players', (q) =>
+        q.pivotColumns(['joined_at']).orderBy('class_participants.joined_at', 'asc')
+      )
+      .orderBy('scheduled_at', 'asc')
   }
 
   async findById(id: string): Promise<Class | null> {
@@ -91,7 +108,13 @@ export class ClassService {
   }
 
   async findOne(id: string, user: User): Promise<Class | null> {
-    const classInstance = await Class.find(id)
+    const classInstance = await Class.query()
+      .where('id', id)
+      .preload('teacher')
+      .preload('players', (q) =>
+        q.pivotColumns(['joined_at']).orderBy('class_participants.joined_at', 'asc')
+      )
+      .first()
     if (!classInstance) return null
     const isTeacherOwner = classInstance.teacherId === user.id
     if (!classInstance.isPublished && !isTeacherOwner) return null
@@ -118,10 +141,14 @@ export class ClassService {
     if (data.isPublished !== undefined) classInstance.merge({ isPublished: data.isPublished })
     if (data.scheduledAt !== undefined) classInstance.merge({ scheduledAt: data.scheduledAt })
     await classInstance.save()
+    await classInstance.load('teacher')
+    await classInstance.load('players', (q) =>
+      q.pivotColumns(['joined_at']).orderBy('class_participants.joined_at', 'asc')
+    )
     return classInstance
   }
 
-  async joinClass(classInstance: Class, player: User): Promise<void> {
+  async joinClass(classInstance: Class, player: User): Promise<Class> {
     if (player.role !== 'player') {
       throw Object.assign(new Error('Only players can join classes'), { code: 'FORBIDDEN' })
     }
@@ -161,34 +188,14 @@ export class ClassService {
     }
 
     await classInstance.related('players').attach([player.id])
+    await classInstance.load('teacher')
+    await classInstance.load('players', (q) =>
+      q.pivotColumns(['joined_at']).orderBy('class_participants.joined_at', 'asc')
+    )
+    return classInstance
   }
 
-  async getPlayers(
-    classInstance: Class,
-    requestingUser: User
-  ): Promise<
-    {
-      id: string
-      firstName: string
-      lastName: string
-      level: number | null
-      email?: string
-      joinedAt: string
-    }[]
-  > {
-    const players = await classInstance.related('players').query().pivotColumns(['joined_at'])
-    const isOwner = classInstance.teacherId === requestingUser.id
-    return players.map((p) => ({
-      id: p.id,
-      firstName: p.firstName,
-      lastName: p.lastName,
-      level: p.level,
-      ...(isOwner ? { email: p.email } : {}),
-      joinedAt: p.$extras.pivot_joined_at as string,
-    }))
-  }
-
-  async leaveClass(classInstance: Class, player: User): Promise<void> {
+  async leaveClass(classInstance: Class, player: User): Promise<Class> {
     if (player.role !== 'player') {
       throw Object.assign(new Error('Only players can leave classes'), { code: 'FORBIDDEN' })
     }
@@ -206,6 +213,11 @@ export class ClassService {
       })
     }
     await classInstance.related('players').detach([player.id])
+    await classInstance.load('teacher')
+    await classInstance.load('players', (q) =>
+      q.pivotColumns(['joined_at']).orderBy('class_participants.joined_at', 'asc')
+    )
+    return classInstance
   }
 
   async cancel(classInstance: Class): Promise<Class> {

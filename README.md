@@ -183,7 +183,7 @@ Returns the authenticated user's profile.
 
 #### `GET /api/v1/classes` 🔒
 
-List classes. Teachers see their own classes. Players see published classes.
+List classes. Teachers see their own classes. Players see published classes. Each class includes a `players` array (`id`, `firstName`, `lastName`, `level`, `joinedAt`). Teachers also receive `email` for players in their own classes.
 
 **Query params (all optional):**
 
@@ -284,12 +284,6 @@ Player joins a class. Checks:
 Player leaves a class. Checks:
 - User is a player
 - Class has not yet started
-
----
-
-#### `GET /api/v1/classes/:id/players` 🔒
-
-List enrolled players. Teachers (owner) also receive `email`. Other users only see `firstName`, `lastName`, `level`, `joinedAt`.
 
 ---
 

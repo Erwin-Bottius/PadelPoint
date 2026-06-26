@@ -73,4 +73,36 @@ test.group('GET /api/v1/classes', (group) => {
     const response = await client.get(URL)
     response.assertStatus(401)
   })
+
+  test('each class includes a teacher object', async ({ client, assert }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    await ClassFactory.merge({ teacherId: teacher.id, isPublished: true }).create()
+
+    const response = await client.get(URL).loginAs(teacher)
+
+    response.assertStatus(200)
+    const first = (response.body() as any).data[0]
+    assert.exists(first.teacher)
+    assert.equal(first.teacher.id, teacher.id)
+    assert.notExists(first.teacher.password)
+  })
+
+  test('each class includes a players array', async ({ client, assert }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const player = await UserFactory.merge({ role: 'player' }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+      scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    } as any).create()
+
+    await ClassFactory.merge({ teacherId: teacher.id, isPublished: true }).create()
+    await client.post(`/api/v1/classes/${classInstance.id}/join`).loginAs(player)
+
+    const response = await client.get(URL).loginAs(teacher)
+
+    const classes = (response.body() as any).data
+    assert.isArray(classes[0].players)
+    assert.isArray(classes[1].players)
+  })
 })

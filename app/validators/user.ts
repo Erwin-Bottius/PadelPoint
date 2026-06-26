@@ -16,7 +16,7 @@ export const signupValidator = vine.create({
   password: password(),
   passwordConfirmation: password().sameAs('password'),
   role: vine.enum(['teacher', 'player'] as const),
-  level: vine.number().min(1).max(10).optional(),
+  level: vine.number().min(1).max(10).optional().requiredWhen('role', '=', 'player'),
   location: vine.string().trim().optional(),
   club: vine.string().trim().optional(),
 })

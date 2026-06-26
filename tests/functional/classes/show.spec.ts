@@ -94,4 +94,81 @@ test.group('GET /api/v1/classes/:id', (group) => {
     const response = await client.get(URL(classInstance.id))
     response.assertStatus(401)
   })
+
+  test('response includes teacher object with firstName and lastName', async ({
+    client,
+    assert,
+  }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+    }).create()
+
+    const response = await client.get(URL(classInstance.id)).loginAs(teacher)
+
+    response.assertStatus(200)
+    const data = (response.body() as any).data
+    assert.exists(data.teacher)
+    assert.equal(data.teacher.firstName, teacher.firstName)
+    assert.equal(data.teacher.lastName, teacher.lastName)
+    assert.notExists(data.teacher.password)
+  })
+
+  test('response includes players array', async ({ client, assert }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const player = await UserFactory.merge({ role: 'player' }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+      scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    } as any).create()
+
+    await client.post(`/api/v1/classes/${classInstance.id}/join`).loginAs(player)
+
+    const response = await client.get(URL(classInstance.id)).loginAs(teacher)
+
+    response.assertStatus(200)
+    const data = (response.body() as any).data
+    assert.isArray(data.players)
+    assert.lengthOf(data.players, 1)
+    assert.equal(data.players[0].id, player.id)
+    assert.exists(data.players[0].joinedAt)
+  })
+
+  test('teacher sees player email in their own class', async ({ client, assert }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const player = await UserFactory.merge({ role: 'player' }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+      scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    } as any).create()
+
+    await client.post(`/api/v1/classes/${classInstance.id}/join`).loginAs(player)
+
+    const response = await client.get(URL(classInstance.id)).loginAs(teacher)
+
+    const players = (response.body() as any).data.players
+    assert.exists(players[0].email)
+    assert.equal(players[0].email, player.email)
+  })
+
+  test('player does not see other players email', async ({ client, assert }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const player1 = await UserFactory.merge({ role: 'player' }).create()
+    const player2 = await UserFactory.merge({ role: 'player' }).create()
+    const classInstance = await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+      scheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    } as any).create()
+
+    await client.post(`/api/v1/classes/${classInstance.id}/join`).loginAs(player1)
+
+    const response = await client.get(URL(classInstance.id)).loginAs(player2)
+
+    const players = (response.body() as any).data.players
+    assert.notExists(players[0].email)
+  })
 })
