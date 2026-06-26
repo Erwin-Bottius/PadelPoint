@@ -19,7 +19,14 @@ export const createClassesValidator = vine.compile(
 
 export const listClassesValidator = vine.compile(
   vine.object({
-    date: vine.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    start_date: vine
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    end_date: vine
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
     level: vine.number().min(1).max(10).optional(),
     location: vine.string().trim().maxLength(255).optional(),
     available: vine.boolean().optional(),

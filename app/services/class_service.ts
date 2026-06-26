@@ -39,18 +39,28 @@ export class ClassService {
 
   async findAll(
     user: User,
-    filters: { date?: string; level?: number; location?: string; available?: boolean } = {}
+    filters: {
+      start_date?: string
+      end_date?: string
+      level?: number
+      location?: string
+      available?: boolean
+    } = {}
   ): Promise<Class[]> {
     const query =
       user.role === 'teacher'
         ? Class.query().where('teacher_id', user.id)
         : Class.query().where('is_published', true)
 
-    if (filters.date) {
-      const dt = DateTime.fromISO(filters.date, { zone: 'utc' })
-      const start = dt.startOf('day').toISO()!
-      const end = dt.endOf('day').toISO()!
-      query.whereBetween('scheduled_at', [start, end])
+    if (filters.start_date || filters.end_date) {
+      const start = filters.start_date
+        ? DateTime.fromISO(filters.start_date, { zone: 'utc' }).startOf('day')
+        : null
+      const end = filters.end_date
+        ? DateTime.fromISO(filters.end_date, { zone: 'utc' }).startOf('day').plus({ days: 1 })
+        : null
+      if (start) query.where('scheduled_at', '>=', start.toISO()!)
+      if (end) query.where('scheduled_at', '<', end.toISO()!)
     }
 
     if (filters.level !== undefined) {

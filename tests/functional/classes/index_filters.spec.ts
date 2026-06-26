@@ -15,7 +15,10 @@ test.group('GET /api/v1/classes (filters)', (group) => {
     await cleanup()
   })
 
-  test('filter by date returns only classes on that day', async ({ client, assert }) => {
+  test('filter by start_date and end_date returns only classes in range', async ({
+    client,
+    assert,
+  }) => {
     const teacher = await UserFactory.merge({ role: 'teacher' }).create()
     const player = await UserFactory.merge({ role: 'player' }).create()
 
@@ -33,7 +36,38 @@ test.group('GET /api/v1/classes (filters)', (group) => {
 
     const response = await client
       .get(URL)
-      .qs({ date: TOMORROW.toFormat('yyyy-MM-dd') })
+      .qs({
+        start_date: TOMORROW.toFormat('yyyy-MM-dd'),
+        end_date: TOMORROW.toFormat('yyyy-MM-dd'),
+      })
+      .loginAs(player)
+
+    response.assertStatus(200)
+    assert.lengthOf((response.body() as any).data, 1)
+  })
+
+  test('filter by start_date only returns classes from that day onwards', async ({
+    client,
+    assert,
+  }) => {
+    const teacher = await UserFactory.merge({ role: 'teacher' }).create()
+    const player = await UserFactory.merge({ role: 'player' }).create()
+
+    await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+      scheduledAt: TOMORROW.toISO(),
+    } as any).create()
+
+    await ClassFactory.merge({
+      teacherId: teacher.id,
+      isPublished: true,
+      scheduledAt: NEXT_WEEK.toISO(),
+    } as any).create()
+
+    const response = await client
+      .get(URL)
+      .qs({ start_date: NEXT_WEEK.toFormat('yyyy-MM-dd') })
       .loginAs(player)
 
     response.assertStatus(200)
@@ -153,16 +187,27 @@ test.group('GET /api/v1/classes (filters)', (group) => {
 
     const response = await client
       .get(URL)
-      .qs({ location: 'paris', level: 6, date: TOMORROW.toFormat('yyyy-MM-dd') })
+      .qs({
+        location: 'paris',
+        level: 6,
+        start_date: TOMORROW.toFormat('yyyy-MM-dd'),
+        end_date: TOMORROW.toFormat('yyyy-MM-dd'),
+      })
       .loginAs(player)
 
     response.assertStatus(200)
     assert.lengthOf((response.body() as any).data, 1)
   })
 
-  test('returns 422 for invalid date format', async ({ client }) => {
+  test('returns 422 for invalid start_date format', async ({ client }) => {
     const player = await UserFactory.merge({ role: 'player' }).create()
-    const response = await client.get(URL).qs({ date: 'not-a-date' }).loginAs(player)
+    const response = await client.get(URL).qs({ start_date: 'not-a-date' }).loginAs(player)
+    response.assertStatus(422)
+  })
+
+  test('returns 422 for invalid end_date format', async ({ client }) => {
+    const player = await UserFactory.merge({ role: 'player' }).create()
+    const response = await client.get(URL).qs({ end_date: 'not-a-date' }).loginAs(player)
     response.assertStatus(422)
   })
 

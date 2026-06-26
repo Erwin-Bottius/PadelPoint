@@ -98,6 +98,7 @@ All protected routes require: `Authorization: Bearer <jwt>`
 
 Create a new account.
 
+**Body:**
 ```json
 {
   "firstName": "Jean",
@@ -108,12 +109,34 @@ Create a new account.
 }
 ```
 
-`role` is `"player"` or `"teacher"`.
+`role` is `"player"` or `"teacher"`. Optional fields: `level` (1–10), `location`, `club`.
+
+**Response 201:**
+```json
+{
+  "data": {
+    "token": "eyJ...",
+    "user": {
+      "id": "uuid",
+      "firstName": "Jean",
+      "lastName": "Dupont",
+      "email": "jean@example.com",
+      "role": "player",
+      "level": null,
+      "location": null,
+      "club": null,
+      "profilePicture": null,
+      "createdAt": "2026-06-25T21:52:01.629+00:00"
+    }
+  }
+}
+```
 
 ---
 
 #### `POST /api/v1/auth/login`
 
+**Body:**
 ```json
 {
   "email": "jean@example.com",
@@ -121,7 +144,26 @@ Create a new account.
 }
 ```
 
-Returns `{ "token": "eyJ..." }`.
+**Response 200:**
+```json
+{
+  "data": {
+    "token": "eyJ...",
+    "user": {
+      "id": "uuid",
+      "firstName": "Jean",
+      "lastName": "Dupont",
+      "email": "jean@example.com",
+      "role": "player",
+      "level": null,
+      "location": null,
+      "club": null,
+      "profilePicture": null,
+      "createdAt": "2026-06-25T21:52:01.629+00:00"
+    }
+  }
+}
+```
 
 ---
 
@@ -268,10 +310,10 @@ Messages are ordered oldest first.
 
 ## WebSocket (Socket.IO)
 
-Connect to `http://localhost:3333` with your JWT token:
+Connect to `http://localhost:3334` with your JWT token:
 
 ```js
-const socket = io('http://localhost:3333', {
+const socket = io('http://localhost:3334', {
   auth: { token: 'Bearer <jwt>' },
   transports: ['websocket'],
 })

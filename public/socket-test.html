@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Socket.IO Test</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: monospace; padding: 20px; max-width: 800px; }
+    input, button { padding: 8px; margin: 4px; }
+    input[type="text"] { width: 400px; }
+    #log { background: #111; color: #0f0; padding: 16px; height: 400px; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; margin-top: 16px; }
+    .error { color: #f55; }
+    .success { color: #0f0; }
+    .info { color: #88f; }
+    button { cursor: pointer; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; }
+    button:hover { background: #555; }
+    fieldset { margin: 12px 0; border: 1px solid #ccc; padding: 12px; }
+    legend { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>PadelPoint — Socket.IO Test (port 3334)</h2>
+
+  <fieldset>
+    <legend>1. Connexion</legend>
+    <input type="text" id="token" placeholder="Bearer eyJ..." />
+    <button onclick="connect()">Connecter</button>
+    <button onclick="disconnect()">Déconnecter</button>
+    <button id="btn-logout" onclick="logout()" style="display:none;background:#922;border-color:#c44;">Logout (API)</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>2. Rejoindre une room</legend>
+    <input type="text" id="classId" placeholder="class UUID" />
+    <button onclick="joinClass()">join_class</button>
+    <button onclick="leaveClass()">leave_class</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>3. Envoyer un message</legend>
+    <input type="text" id="message" placeholder="Contenu du message..." />
+    <button onclick="sendMessage()">send_message</button>
+  </fieldset>
+
+  <div id="log"></div>
+
+  <script>
+    let socket = null
+
+    function log(text, type = 'success') {
+      const el = document.getElementById('log')
+      const time = new Date().toLocaleTimeString()
+      el.innerHTML += `<span class="${type}">[${time}] ${text}</span>\n`
+      el.scrollTop = el.scrollHeight
+    }
+
+    function connect() {
+      if (socket?.connected) { log('Déjà connecté', 'info'); return }
+      const token = document.getElementById('token').value.trim()
+      if (!token) { log('Token requis', 'error'); return }
+
+      socket = io('http://localhost:3334', {
+        auth: { token },
+        transports: ['websocket'],
+      })
+
+      socket.on('connect', () => {
+        log(`Connecté — socket id: ${socket.id}`)
+        document.getElementById('btn-logout').style.display = 'inline-block'
+      })
+      socket.on('disconnect', (reason) => log(`Déconnecté: ${reason}`, 'error'))
+      socket.on('connect_error', (err) => log(`Erreur connexion: ${err.message}`, 'error'))
+      socket.on('joined', (data) => log(`Rejoint la room: ${JSON.stringify(data)}`))
+      socket.on('new_message', (msg) => log(`new_message: ${JSON.stringify(msg, null, 2)}`))
+      socket.on('error', (err) => log(`Erreur serveur: ${JSON.stringify(err)}`, 'error'))
+    }
+
+    function disconnect() {
+      socket?.disconnect()
+      socket = null
+      document.getElementById('btn-logout').style.display = 'none'
+      log('Déconnecté manuellement', 'info')
+    }
+
+    async function logout() {
+      const token = document.getElementById('token').value.trim()
+      if (!token) { log('Aucun token', 'error'); return }
+      try {
+        const res = await fetch('http://localhost:3333/api/v1/account/logout', {
+          method: 'POST',
+          headers: { Authorization: token },
+        })
+        if (res.status === 204) {
+          log('Logout OK — session invalidée', 'success')
+          document.getElementById('token').value = ''
+          disconnect()
+        } else {
+          log(`Logout échoué: HTTP ${res.status}`, 'error')
+        }
+      } catch (e) {
+        log(`Erreur logout: ${e.message}`, 'error')
+      }
+    }
+
+    function joinClass() {
+      if (!socket?.connected) { log('Connecte-toi d\'abord', 'error'); return }
+      const classId = document.getElementById('classId').value.trim()
+      if (!classId) { log('classId requis', 'error'); return }
+      log(`→ join_class: ${classId}`, 'info')
+      socket.emit('join_class', classId)
+    }
+
+    function leaveClass() {
+      if (!socket?.connected) { log('Connecte-toi d\'abord', 'error'); return }
+      const classId = document.getElementById('classId').value.trim()
+      log(`→ leave_class: ${classId}`, 'info')
+      socket.emit('leave_class', classId)
+    }
+
+    function sendMessage() {
+      if (!socket?.connected) { log('Connecte-toi d\'abord', 'error'); return }
+      const classId = document.getElementById('classId').value.trim()
+      const content = document.getElementById('message').value.trim()
+      if (!content) { log('Message vide', 'error'); return }
+      log(`→ send_message: "${content}"`, 'info')
+      socket.emit('send_message', { classId, content })
+      document.getElementById('message').value = ''
+    }
+
+    document.getElementById('message').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage()
+    })
+  </script>
+</body>
+</html>

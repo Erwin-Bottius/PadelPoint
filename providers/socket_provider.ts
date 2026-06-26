@@ -1,27 +1,23 @@
+import { createServer } from 'node:http'
 import type { ApplicationService } from '@adonisjs/core/types'
 import { Server } from 'socket.io'
-import ClassMessage from '#models/class_message'
-import { ClassService } from '#services/class_service'
 
-declare module '@adonisjs/core/types' {
-  interface ContainerBindings {
-    'socket.io': Server
-  }
-}
+export let io: Server | null = null
 
 export default class SocketProvider {
   constructor(protected app: ApplicationService) {}
 
   async ready() {
-    const { default: server } = await import('@adonisjs/core/services/server')
-    const { default: User } = await import('#models/user')
     const { default: JwtService } = await import('#services/jwt_service')
+    const { default: User } = await import('#models/user')
+    const { default: ClassMessage } = await import('#models/class_message')
+    const { ClassService } = await import('#services/class_service')
 
-    const io = new Server(server.getNodeServer(), {
+    const socketHttpServer = createServer()
+    io = new Server(socketHttpServer, {
       cors: { origin: '*', credentials: true },
     })
-
-    this.app.container.bindValue('socket.io', io)
+    socketHttpServer.listen(3334)
 
     io.use(async (socket, next) => {
       try {
@@ -69,7 +65,6 @@ export default class SocketProvider {
               socket.emit('error', { message: 'Message too long (max 1000 characters)' })
               return
             }
-
             const rooms = [...socket.rooms]
             if (!rooms.includes(`class:${classId}`)) {
               socket.emit('error', { message: 'You must join the class room first' })
@@ -95,7 +90,7 @@ export default class SocketProvider {
               },
             }
 
-            io.to(`class:${classId}`).emit('new_message', payload)
+            io!.to(`class:${classId}`).emit('new_message', payload)
           } catch {
             socket.emit('error', { message: 'Failed to send message' })
           }
