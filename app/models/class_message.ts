@@ -19,6 +19,9 @@ export default class ClassMessage extends BaseModel {
   @column()
   declare content: string
 
+  @column()
+  declare type: 'user' | 'user_left'
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

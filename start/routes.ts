@@ -28,6 +28,8 @@ router
     router
       .group(() => {
         router.get('profile', [controllers.Profile, 'show'])
+        router.post('push-token', [controllers.Profile, 'savePushToken'])
+        router.get('chats', [controllers.Messages, 'chats'])
         router.post('logout', [controllers.AccessTokens, 'destroy'])
       })
       .prefix('account')

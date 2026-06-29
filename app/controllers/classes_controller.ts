@@ -7,6 +7,8 @@ import {
 } from '#validators/class'
 import type Class from '#models/class'
 import type User from '#models/user'
+import ClassMessage from '#models/class_message'
+import { io, notifyAbsentMembers } from '#providers/socket_provider'
 
 const classService = new ClassService()
 
@@ -108,6 +110,34 @@ export default class ClassesController {
     if (!classInstance) return response.notFound({ message: 'Class not found' })
     try {
       const updated = await classService.leaveClass(classInstance, user)
+
+      const message = await ClassMessage.create({
+        classId: params.id,
+        userId: user.id,
+        content: '',
+        type: 'user_left',
+      })
+
+      const payload = {
+        id: message.id,
+        classId: message.classId,
+        content: message.content,
+        type: message.type,
+        createdAt: message.createdAt,
+        author: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+      }
+
+      io?.to(`class:${params.id}`).emit('new_message', payload)
+
+      if (io) {
+        await notifyAbsentMembers(params.id, user.id, payload, io)
+      }
+
       return serialize(serializeClass(updated, user))
     } catch (err: any) {
       if (err.code === 'FORBIDDEN') return response.forbidden({ message: err.message })

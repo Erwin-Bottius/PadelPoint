@@ -176,27 +176,38 @@ export default class MainSeeder extends BaseSeeder {
       }
     }
 
+    // Level range bases: 1, 1.5, 2, 2.5, ... up to 9 (max = base + 1, so max reaches 10)
+    const levelBases = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9]
+
     for (const slot of classSlots) {
       const hour = randomHour()
       const scheduledAt = slot.date.set({ hour, minute: 0, second: 0, millisecond: 0 })
 
-      const hasLevelRange = Math.random() > 0.35
-      const levelMin = hasLevelRange ? randomBetween(1, 7) : null
-      const levelMax = hasLevelRange && levelMin !== null ? levelMin + randomBetween(1, 3) : null
-      const safeMax = levelMax !== null ? Math.min(levelMax, 10) : null
+      // 75% of classes have a level range, 25% are open to all
+      const hasLevelRange = Math.random() > 0.25
+      const levelMin = hasLevelRange ? randomElement(levelBases) : null
+      const levelMax = levelMin !== null ? levelMin + 1 : null
 
       const maxPlayers = randomElement([2, 3, 4])
       const isPublished = Math.random() > 0.2
       const isCancelled = isPublished && Math.random() < 0.08
 
+      // 80% of classes have no custom name → auto-generate like the service does
+      const hasCustomName = Math.random() < 0.2
+      const autoName =
+        levelMin !== null && levelMax !== null
+          ? `Cours niv. ${levelMin} - ${levelMax}`
+          : 'Cours tous niveaux'
+      const name = hasCustomName ? randomElement(CLASS_NAMES) : autoName
+
       const classInstance = await Class.create({
         teacherId: teachers[slot.teacherIndex].id,
-        name: randomElement(CLASS_NAMES),
+        name,
         scheduledAt: scheduledAt.toISO() as any,
         duration: randomElement([60, 90, 120]),
         location: randomElement(LOCATIONS),
         levelMin,
-        levelMax: safeMax,
+        levelMax,
         club: randomElement(CLUBS),
         maxPlayers,
         isPublished,
@@ -211,8 +222,8 @@ export default class MainSeeder extends BaseSeeder {
         if (spotsToFill > 0) {
           const shuffled = [...players].sort(() => Math.random() - 0.5)
           const eligible = shuffled.filter((p) => {
-            if (levelMin === null || safeMax === null) return true
-            return p.level !== null && p.level >= levelMin && p.level <= safeMax
+            if (levelMin === null || levelMax === null) return true
+            return p.level !== null && p.level >= levelMin && p.level <= levelMax
           })
           const toEnroll = eligible.slice(0, spotsToFill)
           for (const player of toEnroll) {

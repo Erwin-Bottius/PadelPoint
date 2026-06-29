@@ -13,6 +13,10 @@ export interface ApiDefinition {
   profile: {
     profile: {
       show: typeof routes['profile.profile.show']
+      savePushToken: typeof routes['profile.profile.save_push_token']
+    }
+    messages: {
+      chats: typeof routes['profile.messages.chats']
     }
     accessTokens: {
       destroy: typeof routes['profile.access_tokens.destroy']

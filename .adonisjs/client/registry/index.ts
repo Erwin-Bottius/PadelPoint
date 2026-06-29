@@ -24,6 +24,18 @@ const routes = {
     tokens: [{"old":"/api/v1/account/profile","type":0,"val":"api","end":""},{"old":"/api/v1/account/profile","type":0,"val":"v1","end":""},{"old":"/api/v1/account/profile","type":0,"val":"account","end":""},{"old":"/api/v1/account/profile","type":0,"val":"profile","end":""}],
     types: placeholder as Registry['profile.profile.show']['types'],
   },
+  'profile.profile.save_push_token': {
+    methods: ["POST"],
+    pattern: '/api/v1/account/push-token',
+    tokens: [{"old":"/api/v1/account/push-token","type":0,"val":"api","end":""},{"old":"/api/v1/account/push-token","type":0,"val":"v1","end":""},{"old":"/api/v1/account/push-token","type":0,"val":"account","end":""},{"old":"/api/v1/account/push-token","type":0,"val":"push-token","end":""}],
+    types: placeholder as Registry['profile.profile.save_push_token']['types'],
+  },
+  'profile.messages.chats': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/account/chats',
+    tokens: [{"old":"/api/v1/account/chats","type":0,"val":"api","end":""},{"old":"/api/v1/account/chats","type":0,"val":"v1","end":""},{"old":"/api/v1/account/chats","type":0,"val":"account","end":""},{"old":"/api/v1/account/chats","type":0,"val":"chats","end":""}],
+    types: placeholder as Registry['profile.messages.chats']['types'],
+  },
   'profile.access_tokens.destroy': {
     methods: ["POST"],
     pattern: '/api/v1/account/logout',

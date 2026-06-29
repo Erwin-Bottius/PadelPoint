@@ -12,6 +12,7 @@ type ClassInput = {
   levelMax?: number | null
   club?: string | null
   maxPlayers?: number
+  isPublished?: boolean
 }
 
 type UpdateInput = Partial<ClassInput> & { isPublished?: boolean }
@@ -40,7 +41,7 @@ export class ClassService {
       level_max: input.levelMax ?? null,
       club: input.club ?? null,
       max_players: input.maxPlayers ?? 4,
-      is_published: false,
+      is_published: input.isPublished ?? false,
     }))
 
     // Single INSERT with multiple rows — 1 round-trip regardless of batch size

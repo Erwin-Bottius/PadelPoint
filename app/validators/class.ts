@@ -9,11 +9,12 @@ const classItem = vine.object({
   levelMax: vine.number().min(1).max(10).optional(),
   club: vine.string().trim().maxLength(100).optional(),
   maxPlayers: vine.number().min(1).max(4).optional(),
+  isPublished: vine.boolean().optional(),
 })
 
 export const createClassesValidator = vine.compile(
   vine.object({
-    classes: vine.array(classItem).minLength(1).maxLength(50),
+    classes: vine.array(classItem).minLength(1).maxLength(40),
   })
 )
 

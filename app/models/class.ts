@@ -1,7 +1,8 @@
 import { ClassSchema } from '#database/schema'
-import { belongsTo, manyToMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
+import ClassMessage from '#models/class_message'
 
 export default class Class extends ClassSchema {
   @belongsTo(() => User, { foreignKey: 'teacherId' })
@@ -14,4 +15,7 @@ export default class Class extends ClassSchema {
     pivotTimestamps: { createdAt: 'joined_at', updatedAt: false },
   })
   declare players: ManyToMany<typeof User>
+
+  @hasMany(() => ClassMessage, { foreignKey: 'classId' })
+  declare messages: HasMany<typeof ClassMessage>
 }

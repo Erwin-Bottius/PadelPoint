@@ -2,134 +2,359 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Socket.IO Test</title>
+  <title>PadelPoint — Test Chat</title>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <style>
-    body { font-family: monospace; padding: 20px; max-width: 800px; }
-    input, button { padding: 8px; margin: 4px; }
-    input[type="text"] { width: 400px; }
-    #log { background: #111; color: #0f0; padding: 16px; height: 400px; overflow-y: auto; white-space: pre-wrap; border-radius: 4px; margin-top: 16px; }
-    .error { color: #f55; }
-    .success { color: #0f0; }
-    .info { color: #88f; }
-    button { cursor: pointer; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; }
-    button:hover { background: #555; }
-    fieldset { margin: 12px 0; border: 1px solid #ccc; padding: 12px; }
-    legend { font-weight: bold; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: monospace; background: #1a1a1a; color: #ddd; display: flex; height: 100vh; }
+
+    #sidebar {
+      width: 300px; min-width: 300px; background: #222; border-right: 1px solid #333;
+      display: flex; flex-direction: column; padding: 16px; gap: 12px; overflow-y: auto;
+    }
+    #main { flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 12px; overflow: hidden; }
+
+    h2 { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+    h3 { font-size: 13px; color: #88f; margin-bottom: 4px; }
+
+    input, button, select {
+      font-family: monospace; font-size: 13px;
+      background: #333; color: #ddd; border: 1px solid #444;
+      padding: 7px 10px; border-radius: 4px; width: 100%;
+    }
+    button { cursor: pointer; width: auto; }
+    button:hover { background: #444; }
+    button.primary { background: #1a4fa8; border-color: #2a6fcc; color: #fff; }
+    button.primary:hover { background: #2a6fcc; }
+    button.danger { background: #7a1515; border-color: #aa2222; color: #fff; }
+    button.danger:hover { background: #aa2222; }
+
+    .row { display: flex; gap: 6px; align-items: center; }
+    .row input { flex: 1; }
+
+    .section { display: flex; flex-direction: column; gap: 6px; }
+    .section-title {
+      font-size: 11px; color: #666; text-transform: uppercase;
+      letter-spacing: 1px; padding-bottom: 4px; border-bottom: 1px solid #333;
+    }
+
+    #chat-list { display: flex; flex-direction: column; gap: 4px; max-height: 250px; overflow-y: auto; }
+    .chat-item {
+      padding: 8px; background: #2a2a2a; border: 1px solid #333; border-radius: 4px;
+      cursor: pointer; font-size: 12px;
+    }
+    .chat-item:hover { background: #333; border-color: #555; }
+    .chat-item.active { border-color: #88f; background: #1e1e3a; }
+    .chat-item .chat-name { color: #eee; font-weight: bold; }
+    .chat-item .chat-meta { color: #666; font-size: 11px; margin-top: 2px; }
+
+    #messages {
+      flex: 1; background: #111; border: 1px solid #333; border-radius: 4px;
+      padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    }
+    .msg { font-size: 13px; line-height: 1.5; }
+    .msg .meta { color: #666; font-size: 11px; }
+    .msg .author { color: #88f; }
+    .msg.mine .author { color: #4c4; }
+    .msg .body { color: #ddd; margin-top: 2px; }
+
+    #send-row { display: flex; gap: 8px; }
+    #send-row input { flex: 1; }
+
+    #log {
+      height: 140px; background: #0a0a0a; border: 1px solid #333; border-radius: 4px;
+      padding: 10px; overflow-y: auto; white-space: pre-wrap; font-size: 11px;
+    }
+    .log-ok { color: #4c4; }
+    .log-err { color: #f55; }
+    .log-info { color: #88f; }
+
+    .status-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #555; margin-right: 6px;
+    }
+    .status-dot.connected { background: #4c4; }
+
+    #current-room { font-size: 11px; color: #666; margin-top: -4px; }
   </style>
 </head>
 <body>
-  <h2>PadelPoint — Socket.IO Test (port 3334)</h2>
 
-  <fieldset>
-    <legend>1. Connexion</legend>
-    <input type="text" id="token" placeholder="Bearer eyJ..." />
-    <button onclick="connect()">Connecter</button>
-    <button onclick="disconnect()">Déconnecter</button>
-    <button id="btn-logout" onclick="logout()" style="display:none;background:#922;border-color:#c44;">Logout (API)</button>
-  </fieldset>
+<div id="sidebar">
+  <h2>PadelPoint Chat Test</h2>
 
-  <fieldset>
-    <legend>2. Rejoindre une room</legend>
-    <input type="text" id="classId" placeholder="class UUID" />
-    <button onclick="joinClass()">join_class</button>
-    <button onclick="leaveClass()">leave_class</button>
-  </fieldset>
+  <!-- LOGIN -->
+  <div class="section">
+    <div class="section-title">1. Login</div>
+    <input type="email" id="email" placeholder="email" value="teacher@test.com" />
+    <input type="password" id="password" placeholder="password" value="password" />
+    <div class="row">
+      <button class="primary" onclick="login()">Login</button>
+      <button class="danger" onclick="logout()" id="btn-logout" style="display:none">Logout</button>
+    </div>
+    <div id="user-info" style="font-size:11px;color:#666;"></div>
+  </div>
 
-  <fieldset>
-    <legend>3. Envoyer un message</legend>
-    <input type="text" id="message" placeholder="Contenu du message..." />
-    <button onclick="sendMessage()">send_message</button>
-  </fieldset>
+  <!-- SOCKET -->
+  <div class="section">
+    <div class="section-title">2. Socket</div>
+    <div class="row">
+      <span class="status-dot" id="dot"></span>
+      <span id="socket-status" style="font-size:12px;color:#666;">Déconnecté</span>
+    </div>
+    <div class="row">
+      <button onclick="connectSocket()" id="btn-connect" disabled>Connecter Socket</button>
+      <button onclick="disconnectSocket()">✕</button>
+    </div>
+  </div>
 
-  <div id="log"></div>
+  <!-- CHATS -->
+  <div class="section">
+    <div class="section-title">3. Mes chats</div>
+    <button onclick="loadChats()" id="btn-chats" disabled>Charger mes chats</button>
+    <div id="chat-list"></div>
+  </div>
 
-  <script>
-    let socket = null
+  <!-- ROOM MANUELLE -->
+  <div class="section">
+    <div class="section-title">Rejoindre par UUID</div>
+    <input type="text" id="classId" placeholder="class UUID..." />
+    <div class="row">
+      <button onclick="joinClass()">Join</button>
+      <button onclick="leaveClass()">Leave</button>
+    </div>
+  </div>
+</div>
 
-    function log(text, type = 'success') {
-      const el = document.getElementById('log')
-      const time = new Date().toLocaleTimeString()
-      el.innerHTML += `<span class="${type}">[${time}] ${text}</span>\n`
-      el.scrollTop = el.scrollHeight
-    }
+<div id="main">
+  <div>
+    <h3>Chat <span id="current-room-name" style="color:#ddd"></span></h3>
+    <div id="current-room">Aucune room sélectionnée</div>
+  </div>
 
-    function connect() {
-      if (socket?.connected) { log('Déjà connecté', 'info'); return }
-      const token = document.getElementById('token').value.trim()
-      if (!token) { log('Token requis', 'error'); return }
+  <div id="messages"></div>
 
-      socket = io('http://localhost:3334', {
-        auth: { token },
-        transports: ['websocket'],
+  <div id="send-row">
+    <input type="text" id="message" placeholder="Écrire un message... (Entrée pour envoyer)" disabled />
+    <button class="primary" onclick="sendMessage()" id="btn-send" disabled>Envoyer</button>
+  </div>
+
+  <div>
+    <div class="section-title" style="margin-bottom:6px">Logs</div>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script>
+  let socket = null
+  let jwt = null
+  let currentUser = null
+  let currentClassId = null
+
+  // ─── LOG ────────────────────────────────────────────────────────────
+  function log(text, type = 'ok') {
+    const el = document.getElementById('log')
+    const t = new Date().toLocaleTimeString()
+    el.innerHTML += `<span class="log-${type}">[${t}] ${text}</span>\n`
+    el.scrollTop = el.scrollHeight
+  }
+
+  // ─── AUTH ───────────────────────────────────────────────────────────
+  async function login() {
+    const email = document.getElementById('email').value.trim()
+    const password = document.getElementById('password').value
+    try {
+      const res = await fetch('http://localhost:3333/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       })
+      const body = await res.json()
+      if (!res.ok) { log(`Login échoué: ${JSON.stringify(body)}`, 'err'); return }
+      jwt = body.data.token
+      currentUser = body.data.user
+      document.getElementById('user-info').textContent =
+        `${currentUser.firstName} ${currentUser.lastName} (${currentUser.role})`
+      document.getElementById('btn-logout').style.display = 'inline-block'
+      document.getElementById('btn-connect').disabled = false
+      document.getElementById('btn-chats').disabled = false
+      log(`Connecté en tant que ${email}`)
+    } catch (e) {
+      log(`Erreur login: ${e.message}`, 'err')
+    }
+  }
 
-      socket.on('connect', () => {
-        log(`Connecté — socket id: ${socket.id}`)
-        document.getElementById('btn-logout').style.display = 'inline-block'
+  async function logout() {
+    if (jwt) {
+      await fetch('http://localhost:3333/api/v1/account/logout', {
+        method: 'POST', headers: { Authorization: `Bearer ${jwt}` },
       })
-      socket.on('disconnect', (reason) => log(`Déconnecté: ${reason}`, 'error'))
-      socket.on('connect_error', (err) => log(`Erreur connexion: ${err.message}`, 'error'))
-      socket.on('joined', (data) => log(`Rejoint la room: ${JSON.stringify(data)}`))
-      socket.on('new_message', (msg) => log(`new_message: ${JSON.stringify(msg, null, 2)}`))
-      socket.on('error', (err) => log(`Erreur serveur: ${JSON.stringify(err)}`, 'error'))
     }
+    jwt = null; currentUser = null
+    disconnectSocket()
+    document.getElementById('btn-logout').style.display = 'none'
+    document.getElementById('btn-connect').disabled = true
+    document.getElementById('btn-chats').disabled = true
+    document.getElementById('user-info').textContent = ''
+    document.getElementById('chat-list').innerHTML = ''
+    log('Déconnecté', 'info')
+  }
 
-    function disconnect() {
-      socket?.disconnect()
-      socket = null
-      document.getElementById('btn-logout').style.display = 'none'
-      log('Déconnecté manuellement', 'info')
+  // ─── SOCKET ─────────────────────────────────────────────────────────
+  function connectSocket() {
+    if (socket?.connected) { log('Déjà connecté', 'info'); return }
+    socket = io('http://localhost:3334', {
+      auth: { token: `Bearer ${jwt}` },
+      transports: ['websocket'],
+    })
+    socket.on('connect', () => {
+      setSocketStatus(true)
+      log(`Socket connecté — id: ${socket.id}`)
+    })
+    socket.on('disconnect', (reason) => {
+      setSocketStatus(false)
+      log(`Socket déconnecté: ${reason}`, 'err')
+    })
+    socket.on('connect_error', (err) => log(`Erreur socket: ${err.message}`, 'err'))
+    socket.on('joined', (data) => {
+      log(`Rejoint room: ${data.classId}`)
+      currentClassId = data.classId
+      document.getElementById('current-room').textContent = `Room active: ${data.classId}`
+      document.getElementById('message').disabled = false
+      document.getElementById('btn-send').disabled = false
+    })
+    socket.on('new_message', (msg) => appendMessage(msg))
+    socket.on('error', (err) => log(`Erreur serveur: ${err.message}`, 'err'))
+  }
+
+  function disconnectSocket() {
+    socket?.disconnect(); socket = null
+    setSocketStatus(false)
+    currentClassId = null
+    document.getElementById('current-room').textContent = 'Aucune room sélectionnée'
+    document.getElementById('current-room-name').textContent = ''
+    document.getElementById('message').disabled = true
+    document.getElementById('btn-send').disabled = true
+  }
+
+  function setSocketStatus(connected) {
+    document.getElementById('dot').className = 'status-dot' + (connected ? ' connected' : '')
+    document.getElementById('socket-status').textContent = connected ? 'Connecté' : 'Déconnecté'
+    document.getElementById('socket-status').style.color = connected ? '#4c4' : '#666'
+  }
+
+  // ─── CHATS ──────────────────────────────────────────────────────────
+  async function loadChats() {
+    if (!jwt) { log('Login requis', 'err'); return }
+    try {
+      const res = await fetch('http://localhost:3333/api/v1/account/chats', {
+        headers: { Authorization: `Bearer ${jwt}` },
+      })
+      const body = await res.json()
+      if (!res.ok) { log(`Erreur chats: ${JSON.stringify(body)}`, 'err'); return }
+      renderChatList(body.data)
+      log(`${body.data.length} chat(s) chargé(s)`)
+    } catch (e) {
+      log(`Erreur chats: ${e.message}`, 'err')
     }
+  }
 
-    async function logout() {
-      const token = document.getElementById('token').value.trim()
-      if (!token) { log('Aucun token', 'error'); return }
-      try {
-        const res = await fetch('http://localhost:3333/api/v1/account/logout', {
-          method: 'POST',
-          headers: { Authorization: token },
-        })
-        if (res.status === 204) {
-          log('Logout OK — session invalidée', 'success')
-          document.getElementById('token').value = ''
-          disconnect()
-        } else {
-          log(`Logout échoué: HTTP ${res.status}`, 'error')
-        }
-      } catch (e) {
-        log(`Erreur logout: ${e.message}`, 'error')
-      }
-    }
+  function renderChatList(classes) {
+    const el = document.getElementById('chat-list')
+    if (classes.length === 0) { el.innerHTML = '<div style="color:#555;font-size:12px">Aucun chat avec messages</div>'; return }
+    el.innerHTML = classes.map(c => {
+      const date = c.scheduledAt ? new Date(c.scheduledAt).toLocaleDateString('fr') : ''
+      return `<div class="chat-item" onclick="selectChat('${c.id}', '${escHtml(c.name || 'Sans nom')}')">
+        <div class="chat-name">${escHtml(c.name || 'Sans nom')}</div>
+        <div class="chat-meta">${date} · ${c.players?.length ?? 0} joueur(s)</div>
+      </div>`
+    }).join('')
+  }
 
-    function joinClass() {
-      if (!socket?.connected) { log('Connecte-toi d\'abord', 'error'); return }
-      const classId = document.getElementById('classId').value.trim()
-      if (!classId) { log('classId requis', 'error'); return }
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  }
+
+  async function selectChat(classId, name) {
+    document.getElementById('classId').value = classId
+    document.getElementById('current-room-name').textContent = name
+    document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'))
+    event.currentTarget.classList.add('active')
+
+    // Load history
+    document.getElementById('messages').innerHTML = ''
+    await loadHistory(classId)
+
+    // Join socket room
+    if (socket?.connected) {
+      if (currentClassId && currentClassId !== classId) socket.emit('leave_class', currentClassId)
       log(`→ join_class: ${classId}`, 'info')
       socket.emit('join_class', classId)
+    } else {
+      log('Socket non connecté — connecte le socket pour le temps réel', 'info')
     }
+  }
 
-    function leaveClass() {
-      if (!socket?.connected) { log('Connecte-toi d\'abord', 'error'); return }
-      const classId = document.getElementById('classId').value.trim()
-      log(`→ leave_class: ${classId}`, 'info')
-      socket.emit('leave_class', classId)
+  async function loadHistory(classId) {
+    try {
+      const res = await fetch(`http://localhost:3333/api/v1/classes/${classId}/messages?limit=50`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      })
+      const body = await res.json()
+      if (!res.ok) { log(`Erreur historique: ${JSON.stringify(body)}`, 'err'); return }
+      body.data.forEach(m => appendMessage(m, false))
+      log(`${body.data.length} message(s) chargé(s)`)
+    } catch (e) {
+      log(`Erreur historique: ${e.message}`, 'err')
     }
+  }
 
-    function sendMessage() {
-      if (!socket?.connected) { log('Connecte-toi d\'abord', 'error'); return }
-      const classId = document.getElementById('classId').value.trim()
-      const content = document.getElementById('message').value.trim()
-      if (!content) { log('Message vide', 'error'); return }
-      log(`→ send_message: "${content}"`, 'info')
-      socket.emit('send_message', { classId, content })
-      document.getElementById('message').value = ''
-    }
+  function appendMessage(msg, scroll = true) {
+    const el = document.getElementById('messages')
+    const isMe = currentUser && msg.author?.id === currentUser.id
+    const time = new Date(msg.createdAt).toLocaleTimeString('fr')
+    const div = document.createElement('div')
+    div.className = 'msg' + (isMe ? ' mine' : '')
+    div.innerHTML = `<div class="meta"><span class="author">${escHtml(msg.author?.firstName ?? '?')} ${escHtml(msg.author?.lastName ?? '')}</span> · ${time}</div>
+<div class="body">${escHtml(msg.content)}</div>`
+    el.appendChild(div)
+    if (scroll) el.scrollTop = el.scrollHeight
+  }
 
-    document.getElementById('message').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') sendMessage()
-    })
-  </script>
+  // ─── ROOM MANUELLE ──────────────────────────────────────────────────
+  function joinClass() {
+    if (!socket?.connected) { log('Socket non connecté', 'err'); return }
+    const classId = document.getElementById('classId').value.trim()
+    if (!classId) { log('classId requis', 'err'); return }
+    log(`→ join_class: ${classId}`, 'info')
+    socket.emit('join_class', classId)
+  }
+
+  function leaveClass() {
+    if (!socket?.connected) { log('Socket non connecté', 'err'); return }
+    const classId = document.getElementById('classId').value.trim()
+    socket.emit('leave_class', classId)
+    currentClassId = null
+    document.getElementById('current-room').textContent = 'Aucune room sélectionnée'
+    document.getElementById('current-room-name').textContent = ''
+    document.getElementById('message').disabled = true
+    document.getElementById('btn-send').disabled = true
+    log(`← leave_class: ${classId}`, 'info')
+  }
+
+  // ─── SEND ────────────────────────────────────────────────────────────
+  function sendMessage() {
+    if (!socket?.connected) { log('Socket non connecté', 'err'); return }
+    const classId = currentClassId || document.getElementById('classId').value.trim()
+    const content = document.getElementById('message').value.trim()
+    if (!content) return
+    socket.emit('send_message', { classId, content })
+    document.getElementById('message').value = ''
+  }
+
+  document.getElementById('message').addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMessage()
+  })
+</script>
 </body>
 </html>

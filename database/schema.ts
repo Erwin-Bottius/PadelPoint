@@ -43,8 +43,19 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class ChatReadSchema extends BaseModel {
+  static $columns = ['classId', 'lastReadAt', 'userId'] as const
+  $columns = ChatReadSchema.$columns
+  @column()
+  declare classId: string
+  @column.dateTime()
+  declare lastReadAt: DateTime
+  @column({ isPrimary: true })
+  declare userId: string
+}
+
 export class ClassMessageSchema extends BaseModel {
-  static $columns = ['classId', 'content', 'createdAt', 'id', 'userId'] as const
+  static $columns = ['classId', 'content', 'createdAt', 'id', 'type', 'userId'] as const
   $columns = ClassMessageSchema.$columns
   @column()
   declare classId: string
@@ -54,6 +65,8 @@ export class ClassMessageSchema extends BaseModel {
   declare createdAt: DateTime
   @column({ isPrimary: true })
   declare id: string
+  @column()
+  declare type: string
   @column()
   declare userId: string
 }
@@ -126,6 +139,7 @@ export class UserSchema extends BaseModel {
     'location',
     'password',
     'profilePicture',
+    'pushToken',
     'role',
   ] as const
   $columns = UserSchema.$columns
@@ -149,6 +163,8 @@ export class UserSchema extends BaseModel {
   declare password: string
   @column()
   declare profilePicture: string | null
+  @column()
+  declare pushToken: string | null
   @column()
   declare role: string
 }
